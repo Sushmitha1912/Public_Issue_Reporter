@@ -1,0 +1,42 @@
+name: public_issue_reporter
+description: A public issue reporting application.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  firebase_core: ^3.0.0
+  firebase_auth: ^5.0.0
+  cloud_firestore: ^5.0.0
+  google_sign_in: ^6.2.1
+
+  url_launcher: ^6.2.5
+  image_picker: ^1.0.7
+  geolocator: ^11.0.0
+  intl: ^0.19.0
+  uuid: ^4.3.3
+  cached_network_image: ^3.3.1
+  cupertino_icons: ^1.0.2
+  http: ^1.1.0
+  flutter_map: ^8.2.2
+  latlong2: ^0.9.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+  flutter_launcher_icons: ^0.13.1
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/logo.png
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: assets/images/logo.png
