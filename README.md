@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # public_issue_reporter
 
 A new Flutter project.
@@ -15,3 +16,6 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+# Public_Issue_Reporter
+
+Public Issue Reporter is a Flutter-based mobile app developed using VS Code and Android Studio that allows users to report public issues like road damage, garbage, etc., with images and live location. It supports multiple issue tracking, status updates, and an admin portal using Firebase Authentication, Cloud Firestore, and Cloudinary.
