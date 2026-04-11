@@ -4,15 +4,19 @@ import '../models/issue.dart';
 import '../services/issue_service.dart';
 import '../services/auth_service.dart';
 import '../theme.dart';
+
 import 'package:url_launcher/url_launcher.dart';
 
-void openMap(double lat, double lon) async {
-  final url = Uri.parse("https://www.google.com/maps?q=$lat,$lon");
+Future<void> openMap(double lat, double lon) async {
+  final Uri googleUrl = Uri.parse(
+    "https://www.google.com/maps/search/?api=1&query=$lat,$lon",
+  );
 
-  if (await canLaunchUrl(url)) {
-    await launchUrl(url);
-  } else {
-    throw 'Could not open map';
+  final Uri geoUrl = Uri.parse("geo:$lat,$lon?q=$lat,$lon");
+
+  if (!await launchUrl(googleUrl,
+      mode: LaunchMode.externalApplication)) {
+    await launchUrl(geoUrl);
   }
 }
 

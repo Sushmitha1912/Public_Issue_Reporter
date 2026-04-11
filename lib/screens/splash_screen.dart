@@ -85,12 +85,13 @@ class _SplashScreenState extends State<SplashScreen>
                       ],
                     ),
                     child: Image.asset(
-    'assets/images/logo.png',
-    width: 70,
-    height: 70,
-),
+                       'assets/images/logo.png',
+                        height: 20,
+                      
+                        fit: BoxFit.contain,
+                      ),
+                    ),
                   ),
-                ),
                 const SizedBox(height: 28),
                 const Text(
                   'Public Reporter',
