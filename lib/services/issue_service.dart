@@ -1,16 +1,10 @@
-import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:http/http.dart' as http;
-import 'package:image_picker/image_picker.dart';
-import 'package:uuid/uuid.dart';
 import '../models/issue.dart';
+import 'package:uuid/uuid.dart';
 
 class IssueService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final _uuid = const Uuid();
-
-  static const String _cloudName = 'dqmlxpime';
-  static const String _uploadPreset = 'flutter_upload';
 
   CollectionReference get _issues => _firestore.collection('issues');
 
@@ -19,15 +13,28 @@ class IssueService {
     IssueCategory? categoryFilter,
     String? userId,
   }) {
-    Query query = _issues.orderBy('createdAt', descending: true);
-    if (statusFilter != null)
+    Query query = _issues;
+
+    if (statusFilter != null) {
       query = query.where('status', isEqualTo: statusFilter.name);
-    if (categoryFilter != null)
+    } else if (categoryFilter != null) {
       query = query.where('category', isEqualTo: categoryFilter.name);
-    if (userId != null)
+    } else if (userId != null) {
       query = query.where('reportedBy', isEqualTo: userId);
-    return query.snapshots().map((snap) =>
-        snap.docs.map((doc) => Issue.fromFirestore(doc)).toList());
+    }
+
+    return query.snapshots().map((snap) {
+      final list = snap.docs.map((doc) => Issue.fromFirestore(doc)).toList();
+      list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return list;
+    });
+  }
+
+  Stream<Issue?> getIssueStream(String issueId) {
+    return _issues.doc(issueId).snapshots().map((doc) {
+      if (doc.exists) return Issue.fromFirestore(doc);
+      return null;
+    });
   }
 
   Future<Issue?> getIssue(String issueId) async {
@@ -44,23 +51,11 @@ class IssueService {
     required double latitude,
     required double longitude,
     required String address,
-    required List<XFile> images,
+    required List images,
     required String userId,
     required String userName,
   }) async {
     final issueId = _uuid.v4();
-    final imageUrls = <String>[];
-
-    for (int i = 0; i < images.length; i++) {
-      final url = await _uploadImageToCloudinary(images[i]);
-      if (url != null) {
-        imageUrls.add(url);
-        print('✅ Image $i uploaded: $url');
-      } else {
-        print('❌ Image $i upload failed');
-      }
-    }
-
     final now = DateTime.now();
     final issue = Issue(
       id: issueId,
@@ -72,7 +67,7 @@ class IssueService {
       latitude: latitude,
       longitude: longitude,
       address: address,
-      imageUrls: imageUrls,
+      imageUrls: [],
       reportedBy: userId,
       reporterName: userName,
       createdAt: now,
@@ -80,42 +75,9 @@ class IssueService {
       upvotes: 0,
       upvotedBy: [],
     );
-
     await _issues.doc(issueId).set(issue.toFirestore());
-    print('✅ Issue saved to Firestore with ${imageUrls.length} images');
     return issueId;
   }
-
-  Future<String?> _uploadImageToCloudinary(XFile file) async {
-  try {
-    final uri = Uri.parse(
-      'https://api.cloudinary.com/v1_1/$_cloudName/image/upload',
-    );
-
-    final bytes = await file.readAsBytes();
-    final base64Image = base64Encode(bytes);
-    final response = await http.post(
-     uri,
-     body: {
-        'file': 'data:image/jpeg;base64,$base64Image',
-        'upload_preset': _uploadPreset,
-        'public_id': 'issue${DateTime.now().millisecondsSinceEpoch}',
-      },
-    );
-
-    final jsonResponse = jsonDecode(response.body);
-    print('📡 Status: ${response.statusCode}');
-    print('📡 Response: $jsonResponse');
-
-    if (response.statusCode == 200) {
-      return jsonResponse['secure_url'] as String;
-    }
-    return null;
-  } catch (e) {
-    print('❌ Upload error: $e');
-    return null;
-  }
-}
 
   Future<void> updateIssueStatus(String issueId, IssueStatus status) async {
     await _issues.doc(issueId).update({

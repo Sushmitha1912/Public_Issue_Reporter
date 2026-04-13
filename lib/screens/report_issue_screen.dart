@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
@@ -23,7 +24,7 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
 
   IssueCategory _category = IssueCategory.roadDamage;
   IssuePriority _priority = IssuePriority.medium;
-  final List<XFile> _images = [];
+  final List<File> _images = [];
   double? _lat, _lng;
   bool _loading = false;
   bool _gettingLocation = false;
@@ -39,24 +40,25 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
   Future<void> _pickFromCamera() async {
     if (_images.length >= 3) {
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Maximum 3 photos allowed')));
+        const SnackBar(content: Text('Maximum 3 photos allowed')));
       return;
     }
     final picked = await ImagePicker()
         .pickImage(source: ImageSource.camera, imageQuality: 70);
-    if (picked != null) setState(() => _images.add(picked));
+    if (picked != null) setState(() => _images.add(File(picked.path)));
   }
 
   Future<void> _pickFromGallery() async {
     if (_images.length >= 3) {
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Maximum 3 photos allowed')));
+        const SnackBar(content: Text('Maximum 3 photos allowed')));
       return;
     }
     final picked = await ImagePicker().pickMultiImage(imageQuality: 70);
     if (picked.isNotEmpty) {
       final remaining = 3 - _images.length;
-      setState(() => _images.addAll(picked.take(remaining)));
+      setState(() => _images.addAll(
+          picked.take(remaining).map((x) => File(x.path))));
     }
   }
 
@@ -90,12 +92,6 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_lat == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Please capture your location first!'),
-          backgroundColor: AppTheme.danger));
-      return;
-    }
     setState(() => _loading = true);
     try {
       final user = _authService.currentUser;
@@ -106,8 +102,8 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
         description: _descCtrl.text.trim(),
         category: _category,
         priority: _priority,
-        latitude: _lat!,
-        longitude: _lng!,
+        latitude: _lat ?? 0.0,
+        longitude: _lng ?? 0.0,
         address: _addressCtrl.text.trim(),
         images: _images,
         userId: user.uid,
@@ -151,8 +147,7 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
         title: const Column(
           children: [
             Text('Report Issue',
-                style:
-                    TextStyle(fontWeight: FontWeight.w700, fontSize: 18)),
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18)),
             Text('సమస్య నివేదించండి',
                 style: TextStyle(fontSize: 12, color: Colors.white70)),
           ],
@@ -199,18 +194,10 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
                         child: GestureDetector(
                           onTap: _pickFromCamera,
                           child: Container(
-                            padding:
-                                const EdgeInsets.symmetric(vertical: 14),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
                             decoration: BoxDecoration(
                               color: const Color(0xFFFF6B35),
                               borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                    color: const Color(0xFFFF6B35)
-                                        .withOpacity(0.3),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 3))
-                              ],
                             ),
                             child: const Column(
                               children: [
@@ -224,8 +211,7 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
                                         fontSize: 13)),
                                 Text('కెమెరా',
                                     style: TextStyle(
-                                        color: Colors.white70,
-                                        fontSize: 11)),
+                                        color: Colors.white70, fontSize: 11)),
                               ],
                             ),
                           ),
@@ -236,18 +222,10 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
                         child: GestureDetector(
                           onTap: _pickFromGallery,
                           child: Container(
-                            padding:
-                                const EdgeInsets.symmetric(vertical: 14),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
                             decoration: BoxDecoration(
                               color: const Color(0xFF10B981),
                               borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                    color: const Color(0xFF10B981)
-                                        .withOpacity(0.3),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 3))
-                              ],
                             ),
                             child: const Column(
                               children: [
@@ -261,8 +239,7 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
                                         fontSize: 13)),
                                 Text('గ్యాలరీ',
                                     style: TextStyle(
-                                        color: Colors.white70,
-                                        fontSize: 11)),
+                                        color: Colors.white70, fontSize: 11)),
                               ],
                             ),
                           ),
@@ -285,21 +262,17 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
                               height: 90,
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(10),
-                                child: Image.network(
-                                  _images[i].path,
-                                  fit: BoxFit.cover,
-                                ),
+                                image: DecorationImage(
+                                    image: FileImage(_images[i]),
+                                    fit: BoxFit.cover),
                               ),
                             ),
                             Positioned(
                               top: 2,
                               right: 12,
                               child: GestureDetector(
-                                onTap: () => setState(
-                                    () => _images.removeAt(i)),
+                                onTap: () =>
+                                    setState(() => _images.removeAt(i)),
                                 child: Container(
                                   padding: const EdgeInsets.all(3),
                                   decoration: const BoxDecoration(
@@ -394,8 +367,7 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
                     onTap: () => setState(() => _priority = p),
                     child: Container(
                       margin: const EdgeInsets.only(right: 8),
-                      padding:
-                          const EdgeInsets.symmetric(vertical: 10),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
                       decoration: BoxDecoration(
                         color: sel ? color : color.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(10),
@@ -430,37 +402,56 @@ class _ReportIssueScreenState extends State<ReportIssueScreen> {
             ),
             const SizedBox(height: 12),
 
-            // Location
+            // Location - Manual Address Entry
             _Label('Location / లొకేషన్'),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _addressCtrl,
-                    decoration: const InputDecoration(
-                      hintText: 'Address or tap GPS button',
-                      prefixIcon: Icon(Icons.location_on_outlined),
-                    ),
-                    validator: (v) =>
-                        v == null || v.isEmpty ? 'Enter location' : null,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: _gettingLocation ? null : _getLocation,
-                  style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 14)),
-                  child: _gettingLocation
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(
-                              color: Colors.white, strokeWidth: 2))
-                      : const Icon(Icons.my_location_rounded),
-                ),
-              ],
+            TextFormField(
+              controller: _addressCtrl,
+              maxLines: 2,
+              decoration: const InputDecoration(
+                hintText:
+                    'Enter your full address / మీ పూర్తి చిరునామా నమోదు చేయండి',
+                prefixIcon: Icon(Icons.location_on_outlined),
+              ),
+              validator: (v) => v == null || v.isEmpty
+                  ? 'Enter location / లొకేషన్ నమోదు చేయండి'
+                  : null,
             ),
+            const SizedBox(height: 8),
+
+            // GPS Button (Optional)
+            GestureDetector(
+              onTap: _gettingLocation ? null : _getLocation,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16, vertical: 10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF10B981).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFF10B981)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _gettingLocation
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Color(0xFF10B981)))
+                        : const Icon(Icons.my_location_rounded,
+                            color: Color(0xFF10B981), size: 18),
+                    const SizedBox(width: 8),
+                    const Text('Use GPS instead / GPS వాడండి',
+                        style: TextStyle(
+                            color: Color(0xFF10B981),
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13)),
+                  ],
+                ),
+              ),
+            ),
+
             if (_lat != null)
               const Padding(
                 padding: EdgeInsets.only(top: 6),

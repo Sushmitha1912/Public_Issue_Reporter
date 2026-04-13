@@ -60,6 +60,17 @@ class _LoginScreenState extends State<LoginScreen>
     super.dispose();
   }
 
+  void _navigateToHome() {
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (_) => widget.role == 'admin'
+            ? const AdminScreen()
+            : const HomeScreen(),
+      ),
+      (route) => false,
+    );
+  }
+
   Future<void> _login() async {
     if (!_loginFormKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
@@ -68,16 +79,7 @@ class _LoginScreenState extends State<LoginScreen>
         email: _loginEmailCtrl.text.trim(),
         password: _loginPasswordCtrl.text,
       );
-      if (mounted) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (_) => widget.role == 'admin'
-                ? const AdminScreen()
-                : const HomeScreen(),
-          ),
-          (route) => false,
-        );
-      }
+      if (mounted) _navigateToHome();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -103,22 +105,33 @@ class _LoginScreenState extends State<LoginScreen>
         phone: _regPhoneCtrl.text.trim(),
         role: widget.role,
       );
-      if (mounted) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (_) => widget.role == 'admin'
-                ? const AdminScreen()
-                : const HomeScreen(),
-          ),
-          (route) => false,
-        );
-      }
+      if (mounted) _navigateToHome();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Registration failed: $e'),
             backgroundColor: AppTheme.danger,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _googleSignIn() async {
+    setState(() => _isLoading = true);
+    try {
+      final result = await _authService.signInWithGoogle(
+          role: widget.role);
+      if (result != null && mounted) _navigateToHome();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Google Sign In failed: $e'),
+            backgroundColor: Colors.red,
           ),
         );
       }
@@ -140,7 +153,7 @@ class _LoginScreenState extends State<LoginScreen>
                 end: Alignment.bottomCenter,
                 colors: [
                   const Color(0xFF1A56DB),
-                  _roleColor.withOpacity(0.8),
+                  _roleColor.withOpacity(0.8)
                 ],
               ),
             ),
@@ -201,7 +214,8 @@ class _LoginScreenState extends State<LoginScreen>
                     ),
                     const Text(
                       'పబ్లిక్ రిపోర్టర్‌కు స్వాగతం',
-                      style: TextStyle(color: Colors.white70, fontSize: 14),
+                      style: TextStyle(
+                          color: Colors.white70, fontSize: 14),
                     ),
                   ],
                 ),
@@ -247,14 +261,6 @@ class _LoginScreenState extends State<LoginScreen>
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: 8),
-            Center(
-              child: Image.asset(
-                'assets/images/logo.png',
-                height: 100,
-                width: 100,
-              ),
-            ),
-            const SizedBox(height: 20),
             TextFormField(
               controller: _loginEmailCtrl,
               keyboardType: TextInputType.emailAddress,
@@ -262,8 +268,9 @@ class _LoginScreenState extends State<LoginScreen>
                 labelText: 'Email / ఇమెయిల్',
                 prefixIcon: Icon(Icons.email_outlined),
               ),
-              validator: (v) =>
-                  v == null || !v.contains('@') ? 'Enter valid email' : null,
+              validator: (v) => v == null || !v.contains('@')
+                  ? 'Enter valid email'
+                  : null,
             ),
             const SizedBox(height: 16),
             TextFormField(
@@ -280,10 +287,11 @@ class _LoginScreenState extends State<LoginScreen>
                       setState(() => _obscureLogin = !_obscureLogin),
                 ),
               ),
-              validator: (v) =>
-                  v == null || v.length < 6 ? 'Min 6 characters' : null,
+              validator: (v) => v == null || v.length < 6
+                  ? 'Min 6 characters'
+                  : null,
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             Align(
               alignment: Alignment.centerRight,
               child: GestureDetector(
@@ -291,8 +299,7 @@ class _LoginScreenState extends State<LoginScreen>
                   if (_loginEmailCtrl.text.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                          content: Text('Enter your email first!')),
-                    );
+                          content: Text('Enter your email first!')));
                     return;
                   }
                   await _authService
@@ -306,60 +313,93 @@ class _LoginScreenState extends State<LoginScreen>
                     );
                   }
                 },
-                child: Text(
-                  'Forgot Password?',
-                  style: TextStyle(
-                    color: _roleColor,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                child: Text('Forgot Password?',
+                    style: TextStyle(
+                        color: _roleColor,
+                        fontWeight: FontWeight.w600)),
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
             ElevatedButton(
               onPressed: _isLoading ? null : _login,
               style: ElevatedButton.styleFrom(
                 backgroundColor: _roleColor,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                    borderRadius: BorderRadius.circular(12)),
               ),
               child: _isLoading
                   ? const SizedBox(
                       height: 22,
                       width: 22,
                       child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    )
-                  : const Text(
-                      'Login / లాగిన్',
+                          color: Colors.white, strokeWidth: 2))
+                  : const Text('Login / లాగిన్',
                       style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white)),
+            ),
+            const SizedBox(height: 16),
+            const Row(
+              children: [
+                Expanded(child: Divider()),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 12),
+                  child: Text('OR',
+                      style: TextStyle(color: Colors.grey)),
+                ),
+                Expanded(child: Divider()),
+              ],
+            ),
+            const SizedBox(height: 16),
+            // Google Sign In Button
+            GestureDetector(
+              onTap: _isLoading ? null : _googleSignIn,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade300),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
                     ),
+                  ],
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('G',
+                        style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.red)),
+                    SizedBox(width: 10),
+                    Text('Sign in with Google',
+                        style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87)),
+                  ],
+                ),
+              ),
             ),
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  "Don't have an account? ",
-                  style: TextStyle(color: Colors.grey.shade600),
-                ),
+                Text("Don't have an account? ",
+                    style: TextStyle(color: Colors.grey.shade600)),
                 GestureDetector(
                   onTap: () => _tabController.animateTo(1),
-                  child: Text(
-                    'Register here',
-                    style: TextStyle(
-                      color: _roleColor,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
+                  child: Text('Register here',
+                      style: TextStyle(
+                          color: _roleColor,
+                          fontWeight: FontWeight.w700)),
                 ),
               ],
             ),
@@ -395,8 +435,9 @@ class _LoginScreenState extends State<LoginScreen>
                 labelText: 'Email / ఇమెయిల్',
                 prefixIcon: Icon(Icons.email_outlined),
               ),
-              validator: (v) =>
-                  v == null || !v.contains('@') ? 'Enter valid email' : null,
+              validator: (v) => v == null || !v.contains('@')
+                  ? 'Enter valid email'
+                  : null,
             ),
             const SizedBox(height: 14),
             TextFormField(
@@ -424,8 +465,9 @@ class _LoginScreenState extends State<LoginScreen>
                       setState(() => _obscureReg = !_obscureReg),
                 ),
               ),
-              validator: (v) =>
-                  v == null || v.length < 6 ? 'Min 6 characters' : null,
+              validator: (v) => v == null || v.length < 6
+                  ? 'Min 6 characters'
+                  : null,
             ),
             const SizedBox(height: 14),
             TextFormField(
@@ -454,13 +496,11 @@ class _LoginScreenState extends State<LoginScreen>
                       width: 22,
                       child: CircularProgressIndicator(
                           color: Colors.white, strokeWidth: 2))
-                  : const Text(
-                      'Create Account / నమోదు చేయండి',
+                  : const Text('Create Account / నమోదు చేయండి',
                       style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
-                          color: Colors.white),
-                    ),
+                          color: Colors.white)),
             ),
             const SizedBox(height: 16),
             Row(
@@ -470,11 +510,10 @@ class _LoginScreenState extends State<LoginScreen>
                     style: TextStyle(color: Colors.grey.shade600)),
                 GestureDetector(
                   onTap: () => _tabController.animateTo(0),
-                  child: Text(
-                    'Login here',
-                    style: TextStyle(
-                        color: _roleColor, fontWeight: FontWeight.w700),
-                  ),
+                  child: Text('Login here',
+                      style: TextStyle(
+                          color: _roleColor,
+                          fontWeight: FontWeight.w700)),
                 ),
               ],
             ),

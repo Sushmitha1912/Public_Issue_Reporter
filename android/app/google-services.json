@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "690610011940",
+    "project_id": "public-issue-reporting-f7fe9",
+    "storage_bucket": "public-issue-reporting-f7fe9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:690610011940:android:029d76544eb0787d413db1",
+        "android_client_info": {
+          "package_name": "com.example.public_issue_reporter"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "690610011940-pempjq1tsjd5rts9lmas4ag08k1nse03.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCG0j9OBcA8a5xBro2Rsdgy2tcqMuJa8f0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "690610011940-pempjq1tsjd5rts9lmas4ag08k1nse03.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
