@@ -96,8 +96,13 @@ class Issue {
       imageUrls: List<String>.from(data['imageUrls'] ?? []),
       reportedBy: data['reportedBy'] ?? '',
       reporterName: data['reporterName'] ?? 'Anonymous',
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
-      updatedAt: (data['updatedAt'] as Timestamp).toDate(),
+      // ✅ FIXED: null-safe timestamp parsing
+      createdAt: data['createdAt'] != null
+          ? (data['createdAt'] as Timestamp).toDate()
+          : DateTime.now(),
+      updatedAt: data['updatedAt'] != null
+          ? (data['updatedAt'] as Timestamp).toDate()
+          : DateTime.now(),
       upvotes: data['upvotes'] ?? 0,
       upvotedBy: List<String>.from(data['upvotedBy'] ?? []),
     );

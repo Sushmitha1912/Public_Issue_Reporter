@@ -11,8 +11,9 @@ dependencies:
     sdk: flutter
   firebase_core: ^4.6.0
   firebase_auth: ^6.3.0
-  
-
+  firebase_storage: ^13.2.0
+  cloud_firestore: ^6.2.0
+  google_sign_in: ^6.2.1
   url_launcher: ^6.3.2
   image_picker: ^1.0.7
   geolocator: ^11.0.0
@@ -23,9 +24,6 @@ dependencies:
   http: ^1.1.0
   flutter_map: ^8.2.2
   latlong2: ^0.9.1
-  google_sign_in: 6.2.1
-  cloud_firestore: ^6.2.0
-  firebase_storage: ^13.2.0
 
 dev_dependencies:
   flutter_test:

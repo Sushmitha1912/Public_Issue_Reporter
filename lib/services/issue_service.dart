@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/issue.dart';
 import 'package:uuid/uuid.dart';
@@ -51,12 +52,13 @@ class IssueService {
     required double latitude,
     required double longitude,
     required String address,
-    required List images,
+    required List<String> imageUrls, // ✅ Cloudinary URLs directly
     required String userId,
     required String userName,
   }) async {
     final issueId = _uuid.v4();
     final now = DateTime.now();
+
     final issue = Issue(
       id: issueId,
       title: title,
@@ -67,7 +69,7 @@ class IssueService {
       latitude: latitude,
       longitude: longitude,
       address: address,
-      imageUrls: [],
+      imageUrls: imageUrls, // ✅ already uploaded URLs
       reportedBy: userId,
       reporterName: userName,
       createdAt: now,
@@ -75,6 +77,7 @@ class IssueService {
       upvotes: 0,
       upvotedBy: [],
     );
+
     await _issues.doc(issueId).set(issue.toFirestore());
     return issueId;
   }
