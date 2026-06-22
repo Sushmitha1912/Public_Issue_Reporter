@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+// Updated for hackathon submission
+gimport 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'screens/splash_screen.dart';
