@@ -32,7 +32,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  // Returns a safe single-character initial for the avatar.
+  // Falls back to 'U' if the name is missing or empty, avoiding a crash.
+  String _getInitial() {
+    final name = _profile?['name'];
+    if (name != null && name.toString().trim().isNotEmpty) {
+      return name.toString().trim()[0].toUpperCase();
+    }
+    return 'U';
+  }
+
   Future<void> _signOut() async {
+    // Ask for confirmation before signing out, so users don't get
+    // logged out by an accidental tap.
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Sign Out?'),
+        content: const Text('Are you sure you want to sign out of your account?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: AppTheme.danger),
+            child: const Text('Sign Out'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
     await _authService.signOut();
     if (mounted) {
       Navigator.of(context).pushAndRemoveUntil(
@@ -82,7 +115,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     child: Center(
                       child: Text(
-                        (_profile?['name'] ?? 'U')[0].toUpperCase(),
+                        _getInitial(),
                         style: const TextStyle(
                           fontSize: 36,
                           fontWeight: FontWeight.w800,
